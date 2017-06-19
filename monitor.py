@@ -1,12 +1,14 @@
 import logging
 import time
 import cv2
+import os
 from webcam import Webcam
+from reporter import Reporter
 
 class Monitor(object):
   log = logging.getLogger('Monitor')
-  baseline = 1
-  armDelay = 1
+  baseline = 10 # Take 10 samples as a baseline before detecting intrusions
+  armDelay = 10 # Wait 10 seconds; time to leave room
 
   @classmethod
   def monitor(cls):
@@ -20,15 +22,10 @@ class Monitor(object):
       if img is not None:
         cls.report_image(img)
       time.sleep(1)
-      # k = cv2.waitKey(30) & 0xff
-      # if k != 255:
-      #   print(k)
-      #   Monitor.log.info('=== Exit signal received ===')
-      #   Monitor.log.info('=== Shutting Down ===.')
-      #   break
+      # TODO: add abort signal
 
   ##
-  # Delay for Monitor.armDelay seconds,
+  # Delay for armDelay seconds,
   # so that I can leave the room
   ##
   @classmethod
@@ -44,10 +41,14 @@ class Monitor(object):
     current_baseline = 0
     while cls.baseline > current_baseline:
       Webcam.baseline()
+      time.sleep(1)
       current_baseline += 1
 
   @classmethod
   def report_image(cls, img):
     cls.log.info('Intruder detected!!')
-    file_name = 'detections/intruder' + str(int(time.time())) + '.png'
-    cv2.imwrite(file_name, img)
+    filename = 'detections/intruder' + str(int(time.time())) + '.png'
+    cv2.imwrite(filename, img)
+    Reporter.report(filename)
+    os.remove(filename)
+

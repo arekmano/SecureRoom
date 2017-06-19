@@ -1,3 +1,7 @@
 __pycache__
 log.csv
 venv
+*.pyc
+detections
+log*
+config
